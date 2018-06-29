@@ -88,13 +88,23 @@ public class AddDiaryActivity extends AppCompatActivity {
         String details = mContent.getText().toString();
         Date date = new Date();
 
-        DiaryEntry diaryEntry = new DiaryEntry(title, details, date);
+        final DiaryEntry diaryEntry = new DiaryEntry(title, details, date);
         if (mId == DEFAULT_DIARY_ENTRY_ID) {
-            mAD.diaryDao().insertDiary(diaryEntry);
+            AppExecutors.getInstance().mainExecutor().execute(new Runnable() {
+                @Override
+                public void run() {
+                    mAD.diaryDao().insertDiary(diaryEntry);
+                }
+            });
         }
         else {
             diaryEntry.setId(mId);
-            mAD.diaryDao().updateDiary(diaryEntry);
+            AppExecutors.getInstance().mainExecutor().execute(new Runnable() {
+                @Override
+                public void run() {
+                    mAD.diaryDao().updateDiary(diaryEntry);
+                }
+            });
             //sets the Id back to the default
             mId = DEFAULT_DIARY_ENTRY_ID;
         }
