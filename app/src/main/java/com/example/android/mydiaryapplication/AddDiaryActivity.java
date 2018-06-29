@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.example.android.mydiaryapplication.database.AppDatabase;
 import com.example.android.mydiaryapplication.database.DiaryEntry;
@@ -89,20 +90,39 @@ public class AddDiaryActivity extends AppCompatActivity {
         Date date = new Date();
 
         final DiaryEntry diaryEntry = new DiaryEntry(title, details, date);
+        AppExecutors appExecutors = AppExecutors.getInstance();
         if (mId == DEFAULT_DIARY_ENTRY_ID) {
-            AppExecutors.getInstance().mainExecutor().execute(new Runnable() {
+            appExecutors.getPrimaryExecutor().execute(new Runnable() {
                 @Override
                 public void run() {
                     mAD.diaryDao().insertDiary(diaryEntry);
                 }
             });
+            //display a message that user entry has been saved
+            appExecutors.getMainThreadExecutor().execute(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(AddDiaryActivity.this,
+                            getResources().getString(R.string.entry_saved),
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
         }
         else {
             diaryEntry.setId(mId);
-            AppExecutors.getInstance().mainExecutor().execute(new Runnable() {
+            appExecutors.getPrimaryExecutor().execute(new Runnable() {
                 @Override
                 public void run() {
                     mAD.diaryDao().updateDiary(diaryEntry);
+                }
+            });
+            //display a message that user entry has been updated
+            appExecutors.getMainThreadExecutor().execute(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(AddDiaryActivity.this,
+                            getResources().getString(R.string.entry_updated),
+                            Toast.LENGTH_SHORT).show();
                 }
             });
             //sets the Id back to the default

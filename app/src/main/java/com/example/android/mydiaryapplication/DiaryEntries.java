@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -14,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.example.android.mydiaryapplication.database.AppDatabase;
 import com.example.android.mydiaryapplication.database.DiaryEntry;
@@ -35,7 +37,13 @@ public class DiaryEntries extends AppCompatActivity implements DiaryAdapter.Item
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_diary_entries);
 
-        fab = (FloatingActionButton) findViewById(R.id.floating_action_button);
+        //hide the back button
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(false);
+        }
+
+        fab = findViewById(R.id.floating_action_button);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -98,11 +106,10 @@ public class DiaryEntries extends AppCompatActivity implements DiaryAdapter.Item
         if (id == R.id.action_sign_out){
             //make a call to firebase sign out if the sign out options was clicked
             FirebaseAuth.getInstance().signOut();
+            Toast.makeText(this,
+                    getResources().getString(R.string.sign_out_successful),
+                    Toast.LENGTH_SHORT).show();
             finish();
-        }else if (id == android.R.id.home) {
-            //exit the application when the back button or the action bar back navigator is pressed
-            onBackPressed();
-            return true;
         }
         return super.onOptionsItemSelected(item);
     }
