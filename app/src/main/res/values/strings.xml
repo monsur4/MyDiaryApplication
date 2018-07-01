@@ -8,4 +8,5 @@
     <string name="sign_out_successful">Sign out successful</string>
     <string name="entry_saved">Entry saved</string>
     <string name="entry_updated">Entry updated</string>
+    <string name="new_entry">New Entry</string>
 </resources>

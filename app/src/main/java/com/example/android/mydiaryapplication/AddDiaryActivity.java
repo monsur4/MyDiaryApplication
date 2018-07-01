@@ -4,8 +4,12 @@ import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.view.ActionMode;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -29,6 +33,7 @@ public class AddDiaryActivity extends AppCompatActivity {
     EditText mTitle;
     EditText mContent;
     Button mButtonSave;
+    ActionBar actionBar;
 
     AppDatabase mAD;
 
@@ -38,6 +43,7 @@ public class AddDiaryActivity extends AppCompatActivity {
         setContentView(R.layout.activity_add_diary);
 
         initializeViews();
+        actionBar = getSupportActionBar();
 
         mAD = AppDatabase.getsInstance(getApplicationContext());
 
@@ -48,7 +54,8 @@ public class AddDiaryActivity extends AppCompatActivity {
                 Intent parentIntent = getIntent();
                 mId = parentIntent.getIntExtra(EXTRA_DIARY_ENTRY_ID, DEFAULT_DIARY_ENTRY_ID);
                 AddDiaryViewModelFactory factory = new AddDiaryViewModelFactory(mAD, mId);
-                final AddDiaryEntryViewModel viewModel = ViewModelProviders.of(this, factory).get(AddDiaryEntryViewModel.class);
+                final AddDiaryEntryViewModel viewModel = ViewModelProviders.of(this, factory)
+                        .get(AddDiaryEntryViewModel.class);
                 viewModel.getDiaryEntry().observe(this, new Observer<DiaryEntry>() {
                     @Override
                     public void onChanged(@Nullable DiaryEntry diaryEntry) {
@@ -60,11 +67,36 @@ public class AddDiaryActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home){
+            onSaveButtonClicked();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     private void populateUI(DiaryEntry diaryEntry) {
         if (diaryEntry != null){
             mTitle.setText(diaryEntry.getTitle());
             mContent.setText(diaryEntry.getDetails());
         }
+    }
+
+    /**
+     * Automatically saves user input when the back button is pressed
+     */
+    @Override
+    protected void onDestroy() {
+        //checks if the current contents of the title and content are not empty
+        //then saves the values in both views
+        if (!mTitle.getText().toString().equals("") && !mContent.getText().toString().equals("")) {
+            saveCurrentContent();
+        }//if the title is empty but the content is
+        else if (mTitle.getText().toString().equals("") && !mContent.getText().toString().equals("")){
+            mTitle.setText(R.string.new_entry);
+            saveCurrentContent();
+        }
+        super.onDestroy();
     }
 
     /**
@@ -83,9 +115,23 @@ public class AddDiaryActivity extends AppCompatActivity {
         });
     }
 
-
+    /**
+     * when the save button is clicked, it saves the current user entry
+     * this method is called when the save button or back button is pressed
+     */
     private void onSaveButtonClicked() {
+        saveCurrentContent();
+        Intent intent = new Intent(AddDiaryActivity.this, DiaryEntries.class);
+        startActivity(intent);
+    }
+
+    /**
+     * Saves the contents of the title and the content views
+     */
+    private void saveCurrentContent() {
         String title = mTitle.getText().toString();
+        //If title is empty, give the entry a title
+        if (title.trim().equals("")){title = getString(R.string.new_entry);}
         String details = mContent.getText().toString();
         Date date = new Date();
 
@@ -109,7 +155,9 @@ public class AddDiaryActivity extends AppCompatActivity {
             });
         }
         else {
+            //set the id of this entry
             diaryEntry.setId(mId);
+            //update the database with the new data
             appExecutors.getPrimaryExecutor().execute(new Runnable() {
                 @Override
                 public void run() {
@@ -128,6 +176,5 @@ public class AddDiaryActivity extends AppCompatActivity {
             //sets the Id back to the default
             mId = DEFAULT_DIARY_ENTRY_ID;
         }
-            finish();
     }
 }

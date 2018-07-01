@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        button = (SignInButton)findViewById(R.id.sign_in_btn);
+        button = findViewById(R.id.sign_in_btn);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         /*
-         *This google sign-in object requests the users ID and basic profile information,
+         *This google sign-in object makes a request for the user ID and basic profile information,
          *as well as the users email addresses
          */
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
                 .requestEmail()
                 .build();
 
-        /*Creates a google sign-in client object object with the google sign-in options requested
+        /*Creates a google sign-in client object with the google sign-in options requested
         * above
         */
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);

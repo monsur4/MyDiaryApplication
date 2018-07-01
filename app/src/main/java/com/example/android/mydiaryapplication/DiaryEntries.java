@@ -4,6 +4,7 @@ import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.ActionBar;
@@ -19,6 +20,13 @@ import android.widget.Toast;
 
 import com.example.android.mydiaryapplication.database.AppDatabase;
 import com.example.android.mydiaryapplication.database.DiaryEntry;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.List;
@@ -31,6 +39,7 @@ public class DiaryEntries extends AppCompatActivity implements DiaryAdapter.Item
     AppDatabase mAD;
     RecyclerView mRecyclerView;
     DiaryAdapter adapter;
+    private GoogleSignInClient mGoogleSignInClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +76,20 @@ public class DiaryEntries extends AppCompatActivity implements DiaryAdapter.Item
 
         //sets the lists in the adapter to the diary entries in the database
         retrieveDiaryFromViewModel();
+
+        /*
+         *This google sign-in object makes a request for the user ID and basic profile information,
+         *as well as the users email addresses
+         */
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
+
+        /*Creates a google sign-in client object with the google sign-in options requested
+        * above
+        */
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
     }
 
     private void retrieveDiaryFromViewModel(){
@@ -106,10 +129,18 @@ public class DiaryEntries extends AppCompatActivity implements DiaryAdapter.Item
         if (id == R.id.action_sign_out){
             //make a call to firebase sign out if the sign out options was clicked
             FirebaseAuth.getInstance().signOut();
-            Toast.makeText(this,
-                    getResources().getString(R.string.sign_out_successful),
-                    Toast.LENGTH_SHORT).show();
-            finish();
+            //signs out of the current google account
+            mGoogleSignInClient.signOut().addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    Intent intent = new Intent(DiaryEntries.this, MainActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(intent);
+                    Toast.makeText(DiaryEntries.this,
+                            getResources().getString(R.string.sign_out_successful),
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
         }
         return super.onOptionsItemSelected(item);
     }

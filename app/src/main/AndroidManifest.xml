@@ -20,7 +20,9 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".DiaryEntries" android:parentActivityName=".MainActivity">
+        <activity android:name=".DiaryEntries" android:parentActivityName=".MainActivity"
+            android:launchMode="singleTop"
+            android:finishOnTaskLaunch="true">
 
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
